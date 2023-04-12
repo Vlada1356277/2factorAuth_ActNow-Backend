@@ -14,6 +14,9 @@ NICKNAME_PATTERN = re.compile(r"^[a-zA-Z0-9]+$")
 PASSWORD_PATTERN = re.compile(r"[0-9]")
 FILE_FORMAT = ["image/jpg", "image/png", "image/jpeg"]
 
+EMAIL_PATTERN = re.compile(
+    r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
+
 
 def get_password_hash(password):
     # using salt from environment variable with 1000 rounds
@@ -36,20 +39,19 @@ def verify_password(password, _hash):
 
 
 def validate_photo(content_type, size):
-
     state = True
 
     if (content_type not in FILE_FORMAT) or (int(size) > 4194304):
         state = False
-        
+
     return state
 
 
 def user_registrate(user_data) -> User:
-
     new_user = User(
         nickname=user_data.nickname,
         password=user_data.password,
+        email=user_data.email
     )
 
     with Session(engine) as session:
@@ -59,11 +61,10 @@ def user_registrate(user_data) -> User:
 
 
 def user_metadata_create(user_data, user_id) -> UserMetadata:
-
     new_user_metadata = UserMetadata(
         user_id=user_id,
         description=user_data.description,
-        photo=user_data.photo,
+        photo=user_data.photo
     )
 
     with Session(engine) as session:
@@ -73,41 +74,47 @@ def user_metadata_create(user_data, user_id) -> UserMetadata:
 
 
 class Nickname(BaseModel):
-
     nickname: str | None = Field(None, max_length=20, min_length=3)
 
     @validator("nickname")
-    def validate_name(cls, value):   # Пройдет валидацию при наличии только лишь букв и цифр в нике, а также по длинам.
-        if not NICKNAME_PATTERN.search(value):   # Сопоставляю с регулярным выражением
+    def validate_name(cls, value):  # Пройдет валидацию при наличии только лишь букв и цифр в нике, а также по длинам.
+        if not NICKNAME_PATTERN.search(value):  # Сопоставляю с регулярным выражением
 
             raise ValueError(
                 'Никнейм не соответствует условиям'
             )
-        
+
         return value
 
 
 class Credentials(BaseModel):
-
     password: str
+    email: str
 
     @validator("password")
-    def validate_password(cls, value):   # Пройдет валидацию только при наличии цифр, двух букв в разном регистре и
+    def validate_password(cls, value):  # Пройдет валидацию только при наличии цифр, двух букв в разном регистре и
         # по длинам.
 
-        if ((not PASSWORD_PATTERN.search(value))    # Сопоставляю с регулярным выражением
-            or (len(value) > 20)
-            or (len(value) < 8)
-            or (re.sub(PASSWORD_PATTERN, '', value) == '')  # Проверяю наличие букв в пароле
-            or (re.sub(PASSWORD_PATTERN, '', value).islower())  # Проверяю наличие заглавных букв
-            or (re.sub(PASSWORD_PATTERN, '', value).isupper())  # Проверяю наличие строчных букв
+        if ((not PASSWORD_PATTERN.search(value))  # Сопоставляю с регулярным выражением
+                or (len(value) > 20)
+                or (len(value) < 8)
+                or (re.sub(PASSWORD_PATTERN, '', value) == '')  # Проверяю наличие букв в пароле
+                or (re.sub(PASSWORD_PATTERN, '', value).islower())  # Проверяю наличие заглавных букв
+                or (re.sub(PASSWORD_PATTERN, '', value).isupper())  # Проверяю наличие строчных букв
         ):
-
             raise ValueError(
                 'Пароль не соответствует условиям'
             )
-        
+
         return value
+
+    @validator("email")
+    def validate_email(cls, value):
+        if not EMAIL_PATTERN.search(value):
+            raise ValueError(
+                'Email не соответствует условиям')
+        return value
+
 
 
 class Photo(BaseModel):
@@ -118,16 +125,15 @@ class Description(BaseModel):
     description: str | None = None
 
     @validator("description")
-    def validate_desc(cls, value):   # Пройдет валидацию только по длине.
+    def validate_desc(cls, value):  # Пройдет валидацию только по длине.
 
         if len(value) > 127:
-
             raise ValueError(
                 'Описание профиля не соответствует условиям'
             )
-        
+
         return value
-    
+
 
 class Metadata(Photo, Description):
     ...

@@ -22,7 +22,7 @@ backend = SQLBackend(engine)
 
 verifier = FastSessionVerifier(
     identifier=environ.get("SESSION_IDENTIFIER"),
-    auto_error=True,
+    auto_error=False,
     backend=backend,
     auth_http_exception=HTTPException(status_code=403, detail="Invalid session"),
 )

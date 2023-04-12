@@ -33,6 +33,7 @@ class User(SQLModel, table=True):
     :param id: user id
     :param nickname: user nickname
     :param password: user password
+    :param email: user email
     :param goals: user goals
     :param stories: user stories
     :param user_metadata: user metadata
@@ -40,6 +41,7 @@ class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     nickname: str
     password: str
+    email: str
     goals: List["Goal"] = Relationship(back_populates="user")
     stories: List["Story"] = Relationship(back_populates="user")
     liked_stories: List["Story"] = Relationship(back_populates="liked_users", link_model=UserStoryLikes)
