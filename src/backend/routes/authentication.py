@@ -48,8 +48,7 @@ def send_mail(your_message: str, mail_to: str, mail_subject: str):
     msg['Subject'] = mail_subject
 
     msg.attach(MIMEText(your_message, 'plain'))
-
-    # server = smtplib.SMTP('smtp.yandex.ru:587')
+    
     server = smtplib.SMTP('smtp.yandex.com', 587)
     # server = smtplib.SMTP('smtp.gmail.com', 587)
     # server = smtplib.SMTP("smtp.mail.yahoo.com", 587)
